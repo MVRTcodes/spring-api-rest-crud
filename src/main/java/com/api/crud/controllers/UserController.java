@@ -7,8 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -18,28 +17,34 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public ArrayList<UserModel> getUsers(){
-        return this.userService.getUsers();
+    public ResponseEntity<List<UserModel>> getUsers() {
+        List<UserModel> users = userService.getUsers();
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(users);
     }
 
-    @GetMapping(path="/{id}")
-    public Optional<UserModel> getUserById(@PathVariable Long id){
-        return this.userService.getById(id);
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<UserModel> getUserById(@PathVariable Long id) {
+        return this.userService.getById(id).map(user -> ResponseEntity.ok(user)).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping
-    public UserModel saveUser(@RequestBody UserModel user){
-        return this.userService.saveUser(user);
+    public ResponseEntity<UserModel> saveUser(@RequestBody UserModel user) {
+        UserModel savedUser = this.userService.saveUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
 
-    @PutMapping(path="/{id}")
-    public UserModel updateUserById(@RequestBody UserModel user, @PathVariable Long id){
-        return this.userService.updateById(user, id);
+    @PutMapping(path = "/{id}")
+    public ResponseEntity<UserModel> updateUserById(@RequestBody UserModel updatedUser, @PathVariable Long id) {
+        UserModel user = this.userService.updateById(updatedUser, id);
+        return ResponseEntity.ok(user);
     }
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<String> deleteById(@PathVariable Long id){
+    public ResponseEntity<String> deleteById(@PathVariable Long id) {
         boolean deleted = this.userService.deleteUser(id);
-        return deleted ? ResponseEntity.ok("User with id " + id + " deleted."): ResponseEntity.status(HttpStatus.NOT_FOUND).body("User couldn't be deleted.");
+        return deleted ? ResponseEntity.ok("User with id " + id + " deleted.") : ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
     }
 }
