@@ -34,6 +34,15 @@ public class UserService {
             user.setEmail(updatedUser.getEmail());
             return userRepository.save(user);
         }).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+    }
 
+    public Boolean deleteUser(Long id) {
+        try{
+            userRepository.deleteById(id);
+            return true;
+
+        }catch (Exception e){
+            return false;
+        }
     }
 }
